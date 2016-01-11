@@ -23,6 +23,8 @@ station_lat = 25.014852
 station_lon = 121.538715
 station_alt = 10
 
+accumulate_gps = ""
+
 '''@atexit.register
 def goodbye():
     """ Reset terminal from curses mode on exit """
@@ -34,29 +36,28 @@ def goodbye():
 
 class HTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
-        print "GetHttpReq"
+        global accumulate_gps
+        _gps = accumulate_gps
         kml = (
            '<?xml version="1.0" encoding="UTF-8"?>\n'
            '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-           '<Style id="yellowLineGreenPoly">\n'
-           '<LineStyle>\n'
-           '<color>7f00ffff</color>\n'
-           '<width>20</width>\n'
-           '</LineStyle>\n'
-           '<PolyStyle>\n'
-           '<color>7f00ff00</color>\n'
-           '</PolyStyle>\n'
-           '</Style>\n'
-           '<Placemark>\n'
-           '<name>Balloon</name>\n'
-           '<styleUrl>#yellowLineGreenPoly</styleUrl>\n'
-           '<LineString>\n'
-           '<altitudeMode>absolute</altitudeMode>\n'
-           '<coordinates>\n%s</coordinates>\n'
-           '</LineString>\n'
-           '</Placemark>\n'
+           '    <Placemark>\n'
+           '        <name>iMet path</name>\n'
+           '        <Style>\n'
+           '            <LineStyle>\n'
+           '                <color>ff0000ff</color>\n'
+           '                <width>5</width>\n'
+           '            </LineStyle>\n'
+           '        </Style>\n'
+           '        <styleUrl>#yellowLineGreenPoly</styleUrl>\n'
+           '        <LineString>\n'
+           '            <altitudeMode>absolute</altitudeMode>\n'
+           '            <tessellate>1</tessellate>\n'
+           '            <coordinates>\n%s</coordinates>\n'
+           '        </LineString>\n'
+           '    </Placemark>\n'
            '</kml>'
-           ) #%(_gps)
+           ) %(_gps)
 
         s.send_response(200)
         s.send_header("Content-type", "application/vnd.google-earth.kml+xml")
@@ -502,6 +503,7 @@ class Sounding: # iMet sounding instance
     def parse(self, char):
 
         pkt_target_length = [0, 14, 18, 5, 20]
+        global accumulate_gps
 
         if ord(char) == 1: # start new packet in buffer
             self.pkt_buffer_array.append(Pkt())
@@ -533,6 +535,8 @@ class Sounding: # iMet sounding instance
                 if pkt.PKT_ID == 2:
                     self.calc_view_params(pkt)  # calculate view parameters
                     self.write_csv()            # write to CSV after receiving GPS packets
+                    if self.current.CRC_ok == 1:
+                        accumulate_gps += ("%s,%s,%s\n" % (repr(self.current.Longitude), repr(self.current.Latitude), repr(self.current.Altitude)))
                 ### 
                 self.n_pkt[0] += 1
                 self.n_pkt[pkt.PKT_ID] += 1
@@ -727,7 +731,7 @@ class Update_time(QtCore.QThread):
 
 ################################################################################
 
-form_class = uic.loadUiType("gui.ui")[0] # Load the UI
+form_class = uic.loadUiType("iMet.ui")[0] # Load the UI
 class MyWindowClass(QtGui.QMainWindow, form_class):
 
     timeSyncThread = Update_time()
