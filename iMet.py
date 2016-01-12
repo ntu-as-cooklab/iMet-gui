@@ -10,21 +10,10 @@ from datetime import datetime
 from math import pi, sqrt, cos, sin, tan, asin, acos, atan
 from struct import unpack
 import os
+
 #import curses
 #import atexit
-
-import crcmod
-crc_aug_ccitt = crcmod.mkCrcFun(0x11021, rev = False, initCrc = 0x1D0F, xorOut = 0x0000)
-
 #stdscr = curses.initscr()  # initialise it
-
-#Station location at NTU AS
-station_lat = 25.014852
-station_lon = 121.538715
-station_alt = 10
-
-accumulate_gps = ""
-
 '''@atexit.register
 def goodbye():
     """ Reset terminal from curses mode on exit """
@@ -34,41 +23,69 @@ def goodbye():
     curses.echo()
     curses.endwin()'''
 
+import crcmod
+crc_aug_ccitt = crcmod.mkCrcFun(0x11021, rev = False, initCrc = 0x1D0F, xorOut = 0x0000)
+
+#Station location at NTU AS
+station_lat = 25.014852
+station_lon = 121.538715
+station_alt = 10
+
+accumulate_gps = ""
+
+#################################################################################################### 
+
 class HTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
-    def do_GET(s):
-        global accumulate_gps
-        _gps = accumulate_gps
-        kml = (
-           '<?xml version="1.0" encoding="UTF-8"?>\n'
-           '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-           '    <Placemark>\n'
-           '        <name>iMet path</name>\n'
-           '        <Style>\n'
-           '            <LineStyle>\n'
-           '                <color>ff0000ff</color>\n'
-           '                <width>5</width>\n'
-           '            </LineStyle>\n'
-           '        </Style>\n'
-           '        <styleUrl>#yellowLineGreenPoly</styleUrl>\n'
-           '        <LineString>\n'
-           '            <altitudeMode>absolute</altitudeMode>\n'
-           '            <tessellate>1</tessellate>\n'
-           '            <coordinates>\n%s</coordinates>\n'
-           '        </LineString>\n'
-           '    </Placemark>\n'
-           '</kml>'
-           ) %(_gps)
+    def do_GET(self):
+        
+        if self.path == '/iMet.kml':
+            kml = (
+               '<?xml version="1.0" encoding="UTF-8"?>\n'
+               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+               '    <Placemark>\n'
+               '        <name>iMet path</name>\n'
+               '        <Style>\n'
+               '            <LineStyle>\n'
+               '                <color>ff0000ff</color>\n'
+               '                <width>5</width>\n'
+               '            </LineStyle>\n'
+               '        </Style>\n'
+               '        <LineString id="iMetPath">\n'
+               '            <altitudeMode>absolute</altitudeMode>\n'
+               '            <tessellate>1</tessellate>\n'
+               '            <coordinates></coordinates>\n'
+               '        </LineString>\n'
+               '    </Placemark>\n'
+               '</kml>'
+               )
+        elif self.path == '/iMet-update.kml':
+            global accumulate_gps
+            kml = (
+               '<?xml version="1.0" encoding="UTF-8"?>\n'
+               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+               '    <NetworkLinkControl>\n'
+               '        <Update>\n'
+               '            <targetHref>http://localhost:8000/iMet.kml</targetHref>\n'
+               '            <Change>\n'
+               '                <LineString targetId="iMetPath">\n'
+               '                    <coordinates>\n%s</coordinates>\n'
+               '                </LineString>\n'
+               '            </Change>\n'
+               '        </Update>\n'
+               '    </NetworkLinkControl>\n'
+               '</kml>'
+               ) %(accumulate_gps)
 
-        s.send_response(200)
-        s.send_header("Content-type", "application/vnd.google-earth.kml+xml")
-        s.send_header("Connection", "close")
-        s.send_header("Content-Length", len(kml))
-        s.end_headers()
-        s.wfile.write(kml)
+        self.send_response(200)
+        self.send_header("Content-type", "application/vnd.google-earth.kml+xml")
+        self.send_header("Connection", "close")
+        self.send_header("Content-Length", len(kml))
+        self.end_headers()
+        self.wfile.write(kml)
 
-def run(server_class=BaseHTTPServer.HTTPServer,handler_class=HTTPServer):
+def run(server_class = BaseHTTPServer.HTTPServer, handler_class = HTTPServer):
     server_address = ('', 8000)
-    httpd = server_class(server_address,handler_class)
+    httpd = server_class(server_address, handler_class)
     httpd.serve_forever()
 
 #################################################################################################### 
