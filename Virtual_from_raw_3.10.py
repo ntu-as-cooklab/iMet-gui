@@ -352,53 +352,10 @@ class Sounding:
             
 ####################################################################################################         
 
-def run_console_main():
+# Start virtual iMet from raw
+virtual = Sounding("Virtual_")           
+virtual.virtual_iMet_raw("iMet_2015.01.26_11.42.02.bin")
 
-    '''sounding = Sounding()
-    sounding.recieve_iMet()'''
-    
-    '''# Start virtual iMet from csv
-    virtual = Sounding("Virtual_")
-    virtual.read_csv_raw("COM26rawData.csv")            
-    virtual.virtual_iMet_pkt()'''
-
-    # Start virtual iMet from raw
-    virtual = Sounding("Virtual_")           
-    virtual.virtual_iMet_raw("iMet_2015.01.26_11.42.02.bin")
-
-####################################################################################################
-'''
-class Dialog_main(QtGui.QMainWindow, uic.loadUiType("dialog_main.ui")[0]):
-    
-    def __init__(self, parent = None):
-        QtGui.QMainWindow.__init__(self, parent)
-        self.setupUi(self)
-        # Bind event handlers
-        self.button_exit.clicked.connect(self.close)
-        self.button_start_sounding.clicked.connect(self.start_sounding)  
- 
-    # Event handlers
-    def start_sounding(self):
-        self.console.append("start")
-        sounding = Sounding([self.console])
-        #sounding.recieve_iMet() 
-        sounding.recieve_iMet("COM30") 
-'''
-####################################################################################################
-'''
-def run_dialog_main():
-
-    # Run GUI
-    app = QtGui.QApplication(sys.argv)
-    dialog_main = Dialog_main(None)
-    dialog_main.show()
-    app.exec_()
-'''
-####################################################################################################
-
-run_console_main()
-#run_dialog_main() 
-             
 
     
 

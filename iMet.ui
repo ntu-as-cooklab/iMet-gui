@@ -7,38 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>773</width>
-    <height>693</height>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="Time">
-    <property name="geometry">
-     <rect>
-      <x>580</x>
-      <y>20</y>
-      <width>161</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial Narrow</family>
-      <pointsize>12</pointsize>
-      <weight>9</weight>
-      <italic>false</italic>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font: 75 12pt &quot;Arial Narrow&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Time:</string>
-    </property>
-   </widget>
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
@@ -63,6 +38,12 @@
      </property>
      <item row="7" column="0">
       <widget class="QLabel" name="label_2">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Distance</string>
        </property>
@@ -76,6 +57,12 @@
      </item>
      <item row="5" column="0">
       <widget class="QLabel" name="label_9">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Lat/Lon</string>
        </property>
@@ -86,6 +73,12 @@
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Altitude</string>
        </property>
@@ -96,6 +89,12 @@
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_23">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>GPS Data</string>
        </property>
@@ -119,6 +118,12 @@
      </item>
      <item row="9" column="0">
       <widget class="QLabel" name="label_21">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Elevation angle</string>
        </property>
@@ -126,13 +131,28 @@
      </item>
      <item row="1" column="2">
       <widget class="QLabel" name="GPS_NO">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
      <item row="8" column="0">
       <widget class="QLabel" name="label_10">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Azimuth</string>
        </property>
@@ -161,6 +181,12 @@
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_12">
+         <property name="font">
+          <font>
+           <family>Century Gothic</family>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string># of Satellites</string>
          </property>
@@ -171,6 +197,12 @@
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_11">
+         <property name="font">
+          <font>
+           <family>Century Gothic</family>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Time</string>
          </property>
@@ -211,6 +243,12 @@
      </property>
      <item row="1" column="0">
       <widget class="QLabel" name="label_3">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Receiver</string>
        </property>
@@ -218,6 +256,12 @@
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_5">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>COM port</string>
        </property>
@@ -225,6 +269,12 @@
      </item>
      <item row="2" column="2">
       <widget class="QPushButton" name="OPEN_COM1">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Open COM port</string>
        </property>
@@ -232,6 +282,12 @@
      </item>
      <item row="1" column="1">
       <widget class="QLabel" name="COM1_OPENED">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Closed</string>
        </property>
@@ -266,6 +322,12 @@
      </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label_24">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>PTU Data</string>
        </property>
@@ -273,6 +335,12 @@
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_15">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Temperature</string>
        </property>
@@ -280,6 +348,12 @@
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_17">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Pressure</string>
        </property>
@@ -287,6 +361,12 @@
      </item>
      <item row="5" column="0">
       <widget class="QLabel" name="label_18">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Humidity</string>
        </property>
@@ -317,6 +397,12 @@
      </item>
      <item row="6" column="0">
       <widget class="QLabel" name="label_22">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>Altitude</string>
        </property>
@@ -327,8 +413,17 @@
      </item>
      <item row="0" column="1">
       <widget class="QLabel" name="PTU_NO">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -336,6 +431,11 @@
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="2" column="0">
         <widget class="QLabel" name="label_26">
+         <property name="font">
+          <font>
+           <family>Century Gothic</family>
+          </font>
+         </property>
          <property name="text">
           <string>Temperature (pr)</string>
          </property>
@@ -352,6 +452,11 @@
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_25">
+         <property name="font">
+          <font>
+           <family>Century Gothic</family>
+          </font>
+         </property>
          <property name="text">
           <string>Temperature (int)</string>
          </property>
@@ -359,6 +464,11 @@
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_27">
+         <property name="font">
+          <font>
+           <family>Century Gothic</family>
+          </font>
+         </property>
          <property name="text">
           <string>Temperature (u)</string>
          </property>
@@ -369,6 +479,11 @@
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_20">
+         <property name="font">
+          <font>
+           <family>Century Gothic</family>
+          </font>
+         </property>
          <property name="text">
           <string>Battery Voltage</string>
          </property>
@@ -378,11 +493,259 @@
      </item>
     </layout>
    </widget>
-   <zorder>Time</zorder>
-   <zorder>gridLayoutWidget</zorder>
-   <zorder>gridLayoutWidget_2</zorder>
-   <zorder>gridLayoutWidget_3</zorder>
-   <zorder>GPS_H</zorder>
+   <widget class="QWidget" name="gridLayoutWidget_4">
+    <property name="geometry">
+     <rect>
+      <x>17</x>
+      <y>475</y>
+      <width>741</width>
+      <height>171</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_6">
+     <item row="3" column="0">
+      <widget class="QLCDNumber" name="DATA12"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLCDNumber" name="DATA23"/>
+     </item>
+     <item row="5" column="5">
+      <widget class="QLCDNumber" name="DATA12345"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_30">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>23</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>12</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="label_6">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>34</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLCDNumber" name="DATA34"/>
+     </item>
+     <item row="2" column="3">
+      <widget class="QLabel" name="label_7">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>45</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="3">
+      <widget class="QLCDNumber" name="DATA45"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLCDNumber" name="DATA123"/>
+     </item>
+     <item row="5" column="4">
+      <widget class="QLCDNumber" name="DATA2345"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_29">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>XDATA</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>123</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLCDNumber" name="DATA234"/>
+     </item>
+     <item row="4" column="4">
+      <widget class="QLabel" name="label_19">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>2345</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLabel" name="label_14">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>345</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QLabel" name="label_16">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>1234</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="3">
+      <widget class="QLCDNumber" name="DATA1234"/>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLCDNumber" name="DATA345"/>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLabel" name="label_13">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>234</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="5">
+      <widget class="QLabel" name="label_28">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>12345</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="XDATA_NO">
+       <property name="font">
+        <font>
+         <family>Century Gothic</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QLCDNumber" name="DATA_NUM"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="Time">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>70</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Century Gothic</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Time:</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

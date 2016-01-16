@@ -1,27 +1,13 @@
 import serial
 from serial.tools import list_ports
-import logging
-import time
 import BaseHTTPServer
 import thread
-import sys
+import sys, os
+import time
 from PyQt4 import QtCore, QtGui, uic
-from datetime import datetime
 from math import pi, sqrt, cos, sin, tan, asin, acos, atan
+from datetime import datetime
 from struct import unpack
-import os
-
-#import curses
-#import atexit
-#stdscr = curses.initscr()  # initialise it
-'''@atexit.register
-def goodbye():
-    """ Reset terminal from curses mode on exit """
-    curses.nocbreak()
-    if stdscr:
-        stdscr.keypad(0)
-    curses.echo()
-    curses.endwin()'''
 
 import crcmod
 crc_aug_ccitt = crcmod.mkCrcFun(0x11021, rev = False, initCrc = 0x1D0F, xorOut = 0x0000)
@@ -31,13 +17,13 @@ station_lat = 25.014852
 station_lon = 121.538715
 station_alt = 10
 
-accumulate_gps = ""
+accumulate_gps = ''
 
-#################################################################################################### 
+####################################################################################################
 
 class HTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
-        
+
         if self.path == '/iMet.kml':
             kml = (
                '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -88,7 +74,7 @@ def run(server_class = BaseHTTPServer.HTTPServer, handler_class = HTTPServer):
     httpd = server_class(server_address, handler_class)
     httpd.serve_forever()
 
-#################################################################################################### 
+####################################################################################################
 
 class tee:
     def __init__(self, output_file_list = sys.stdout, output_text_list = []):
@@ -103,10 +89,10 @@ class tee:
         for output_file in self.output_file_list:
             output_file.write(string)
         for output_text in self.output_text_list:
-            output_text.append(string)   
+            output_text.append(string)
 
     def flush(self):
-        for output_file in self.output_file_list: 
+        for output_file in self.output_file_list:
             output_file.flush()
             #os.fsync(output_file)
 
@@ -154,27 +140,25 @@ def view_params(lat1D, lon1D, alt1, lat2D, lon2D, alt2):
     lmdD = lmd * (180/pi)
 
     return d/1000.0, a1D, lmdD # Distance(km), Azimuth(deg), Elevation angle(deg)
-    
+
 ################################################################################
 
 class Pkt:  # iMet data packet
 
     def __init__(self, string = "", timestr = ""):
-        
+
         self.target_length = 2
         self.string = string    # Packet raw data string
         self.PKT_ID = 0
-        
+
         # If packet raw data is given by string, unpack data
         if self.string != "": self.unpack()
 
         # Timestamp
         if timestr != "":   # If time is given, use as timestamp
-            self.time = timestr 
+            self.time = timestr
         else:               # If time is not given, use current time as timestamp
-            #now = datetime.now()
-            #self.time = "%s%s" % (now.strftime("%H:%M:%S."), str(now.microsecond)[:4])
-            self.time = time.asctime()
+            self.time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
             self.P     = 0
             self.T     = 0
@@ -195,17 +179,17 @@ class Pkt:  # iMet data packet
             self.CRC   = 0
             self.CRC_check   = 0
             self.CRC_ok = 0
-            self.Data = [0]*20
-    
+            self.Data = [0]*25
+
     def unpack(self):
         if len(self.string) > 1: self.PKT_ID = ord(self.string[1]) # Type of packet(PKT_ID) determined by byte at offset 1
         if 1 <= self.PKT_ID <= 4: # Type of packet(PKT_ID) must be 1~4
             pkt_target_length = [0, 14, 18, 5, 20] # Correct length (in bytes) is [1] PTU: 14 [2] GPS: 18 [3] XDATA: varies, minimun 5 [4] PTUx: 20
             self.target_length = pkt_target_length[self.PKT_ID] # If packet is of correct length, unpack packet
-            if len(self.string) >= self.target_length: 
+            if len(self.string) >= self.target_length:
                 if self.PKT_ID == 1:    # PTU packet
-                    self.P     = unpack("<I",self.string[4:7]+"\x00")[0]/100.0  # Pressure:         offset 4~6,     unsigned int,       little-endian 
-                    self.T     = unpack("<h",self.string[7:9])[0]/100.0         # Temperature:      offset 7~8,     signed short,       little-endian 
+                    self.P     = unpack("<I",self.string[4:7]+"\x00")[0]/100.0  # Pressure:         offset 4~6,     unsigned int,       little-endian
+                    self.T     = unpack("<h",self.string[7:9])[0]/100.0         # Temperature:      offset 7~8,     signed short,       little-endian
                     self.U     = unpack("<H",self.string[9:11])[0]/100.0        # Humidity:         offset 9~10,    unsigned short,     little-endian
                     self.Vbat  = unpack("<B",self.string[11])[0]/10.0           # Battery voltage:  offset 11,      unsigned char,      little-endian
                     self.CRC   = unpack(">H",self.string[12:14])[0]             # CRC:              offset 12~13,   unsigned short,     big-endian
@@ -222,29 +206,37 @@ class Pkt:  # iMet data packet
                     self.CRC_check   = crc_aug_ccitt(self.string[:16])          # Calculate CRC from offset 0~15
                 elif self.PKT_ID == 3:  # XDATA packet
                     self.N = ord(self.string[2]) # XDATA packet length determined by byte at offset 2
-                    self.XDATA = self.string[3:3+self.N]
-                    if self.N >= 40:
-                        self.Data[0] = unpack(">H",self.XDATA[0:2])[0]
-                        self.Data[1] = unpack(">H",self.XDATA[2:4])[0]
-                        self.Data[2] = unpack(">H",self.XDATA[4:6])[0]
-                        self.Data[3] = unpack(">H",self.XDATA[6:8])[0]
-                        self.Data[4] = unpack(">H",self.XDATA[8:10])[0]
-                        self.Data[5] = unpack(">H",self.XDATA[10:12])[0]
-                        self.Data[6] = unpack(">H",self.XDATA[12:14])[0]
-                        self.Data[7] = unpack(">H",self.XDATA[14:16])[0]
-                        self.Data[8] = unpack(">H",self.XDATA[16:18])[0]
-                        self.Data[9] = unpack(">H",self.XDATA[18:20])[0]
-                        self.Data[10] = unpack(">H",self.XDATA[20:22])[0]
-                        self.Data[11] = unpack(">H",self.XDATA[22:24])[0]
-                        self.Data[12] = unpack(">H",self.XDATA[24:26])[0]
-                        self.Data[13] = unpack(">H",self.XDATA[26:28])[0]
-                        self.Data[14] = unpack(">H",self.XDATA[28:30])[0]
-                        self.Data[15] = unpack(">H",self.XDATA[30:32])[0]
-                        self.Data[16] = unpack(">H",self.XDATA[32:34])[0]
-                        self.Data[17] = unpack(">H",self.XDATA[34:36])[0]
-                        self.Data[18] = unpack(">H",self.XDATA[36:38])[0]
-                        self.Data[19] = unpack(">H",self.XDATA[38:40])[0]
-                    self.CRC = unpack(">H",self.string[3+self.N:5+self.N])[0]   # Calculate CRC 
+                    if len(self.string) >= 3+self.N:
+                        self.XDATA = self.string[3:3+self.N]
+                        if self.N >= 2:
+                            self.Data[0] = unpack(">H",self.XDATA[0:2])[0]
+                        if self.N >= 26:
+                            self.Data[1] = unpack(">H",self.XDATA[2:4])[0]
+                            self.Data[2] = unpack(">H",self.XDATA[4:6])[0]
+                            self.Data[3] = unpack(">H",self.XDATA[6:8])[0]
+                            self.Data[4] = unpack(">H",self.XDATA[8:10])[0]
+                            self.Data[5] = unpack(">H",self.XDATA[10:12])[0]
+                            self.Data[6] = unpack(">H",self.XDATA[12:14])[0]
+                            self.Data[7] = unpack(">H",self.XDATA[14:16])[0]
+                            self.Data[8] = unpack(">H",self.XDATA[16:18])[0]
+                            self.Data[9] = unpack(">H",self.XDATA[18:20])[0]
+                            self.Data[10] = unpack(">H",self.XDATA[20:22])[0]
+                            self.Data[11] = unpack(">H",self.XDATA[22:24])[0]
+                            self.Data[12] = unpack(">H",self.XDATA[24:26])[0]
+                        if self.N >= 50:
+                            self.Data[13] = unpack(">H",self.XDATA[26:28])[0]
+                            self.Data[14] = unpack(">H",self.XDATA[28:30])[0]
+                            self.Data[15] = unpack(">H",self.XDATA[30:32])[0]
+                            self.Data[16] = unpack(">H",self.XDATA[32:34])[0]
+                            self.Data[17] = unpack(">H",self.XDATA[34:36])[0]
+                            self.Data[18] = unpack(">H",self.XDATA[36:38])[0]
+                            self.Data[19] = unpack(">H",self.XDATA[38:40])[0]
+                            self.Data[20] = unpack(">H",self.XDATA[40:42])[0]
+                            self.Data[21] = unpack(">H",self.XDATA[42:44])[0]
+                            self.Data[22] = unpack(">H",self.XDATA[44:46])[0]
+                            self.Data[23] = unpack(">H",self.XDATA[46:48])[0]
+                            self.Data[24] = unpack(">H",self.XDATA[48:50])[0]
+                    self.CRC = unpack(">H",self.string[3+self.N:5+self.N])[0]   # Calculate CRC
                     self.CRC_check   = crc_aug_ccitt(self.string[:3+self.N])
                 elif self.PKT_ID == 4:  # PTUx packet (PTU enhanced)
                     self.P     = unpack("<I",self.string[4:7]+"\x00")[0]/100.0
@@ -261,44 +253,44 @@ class Pkt:  # iMet data packet
                 else:
                     self.CRC_ok = 0
 
-    def print_pkt(self): # Prints the contents of the data packet "pkt" to the console
-        print "==================== Packet start ===================="
-        print "Computer time = " + repr(self.time)
-        print "Packet string = " + self.string.encode("hex")
+    def print_pkt(self, log_file): # Prints the contents of the data packet "pkt" to the console
+        log_file.write ("==================== Packet start ====================\n")
+        log_file.write ("Computer time = " + repr(self.time) + "\n")
+        log_file.write ("Packet string = " + self.string.encode("hex") + "\n")
         if 1 <= self.PKT_ID <= 4:
             if self.PKT_ID == 1:     # PTU packet
-                print "[PTU packet]"
-                print "PKT_ID = " + repr(self.PKT_ID)
-                print "P = " + repr(self.P)
-                print "T = " + repr(self.T)
-                print "U = " + repr(self.U)
-                print "Vbat = " + repr(self.Vbat)
+                log_file.write ("[PTU packet]\n")
+                log_file.write ("PKT_ID = " + repr(self.PKT_ID) + "\n")
+                log_file.write ("P = " + repr(self.P) + "\n")
+                log_file.write ("T = " + repr(self.T) + "\n")
+                log_file.write ("U = " + repr(self.U) + "\n")
+                log_file.write ("Vbat = " + repr(self.Vbat) + "\n")
             elif self.PKT_ID == 2:   # GPS packet
-                print "[GPS packet]"
-                print "PKT_ID = " + repr(self.PKT_ID)
-                print "Longitude = " + repr(self.Longitude)
-                print "Latitude = " + repr(self.Latitude)
-                print "Altitude = " + repr(self.Altitude)
-                print "nSat = " + repr(self.nSat)
-                print "Time = " + repr(self.Time_h) + ":" + repr(self.Time_m) + ":" + repr(self.Time_s)
+                log_file.write ("[GPS packet]\n")
+                log_file.write ("PKT_ID = " + repr(self.PKT_ID) + "\n")
+                log_file.write ("Longitude = " + repr(self.Longitude) + "\n")
+                log_file.write ("Latitude = " + repr(self.Latitude) + "\n")
+                log_file.write ("Altitude = " + repr(self.Altitude) + "\n")
+                log_file.write ("nSat = " + repr(self.nSat) + "\n")
+                log_file.write ("Time = " + repr(self.Time_h) + ":" + repr(self.Time_m) + ":" + repr(self.Time_s) + "\n")
             elif self.PKT_ID == 3:   # XDATA packet
-                print "[XDATA packet]"
-                print "PKT_ID = " + repr(self.PKT_ID)
-                print "N = " + repr(self.N)
-                print "XDATA = " + self.XDATA.encode("hex")
+                log_file.write ("[XDATA packet]\n")
+                log_file.write ("PKT_ID = " + repr(self.PKT_ID) + "\n")
+                log_file.write ("N = " + repr(self.N) + "\n")
+                log_file.write ("XDATA = " + self.XDATA.encode("hex") + "\n")
             elif self.PKT_ID == 4:   # PTUx packet
-                print "[PTUx packet]"
-                print "PKT_ID = " + repr(self.PKT_ID)
-                print "P = " + repr(self.P)
-                print "T = " + repr(self.T)
-                print "U = " + repr(self.U)
-                print "Vbat = " + repr(self.Vbat)
-                print "Tint = " + repr(self.Tint)
-                print  "Tpr = " + repr(self.Tpr)
-                print  "Tu = " + repr(self.Tu)
-            print  "CRC = " + hex(self.CRC)
-            print  "CRC check = " + hex(self.CRC_check)
-            print  "CRC ok = " + repr(self.CRC_ok)
+                log_file.write ("[PTUx packet]\n")
+                log_file.write ("PKT_ID = " + repr(self.PKT_ID) + "\n")
+                log_file.write ("P = " + repr(self.P) + "\n")
+                log_file.write ("T = " + repr(self.T) + "\n")
+                log_file.write ("U = " + repr(self.U) + "\n")
+                log_file.write ("Vbat = " + repr(self.Vbat) + "\n")
+                log_file.write ("Tint = " + repr(self.Tint) + "\n")
+                log_file.write ("Tpr = " + repr(self.Tpr) + "\n")
+                log_file.write ("Tu = " + repr(self.Tu) + "\n")
+            log_file.write  ("CRC = " + hex(self.CRC) + "\n")
+            log_file.write  ("CRC check = " + hex(self.CRC_check) + "\n")
+            log_file.write  ("CRC ok = " + repr(self.CRC_ok) + "\n")
 
     def extract(self, pkt):
         if 1 <= pkt.PKT_ID <= 4:
@@ -320,7 +312,7 @@ class Pkt:  # iMet data packet
             elif pkt.PKT_ID == 3:   # XDATA packet
                 self.N = pkt.N
                 self.XDATA = pkt.XDATA
-                self.Data = pkt.Data 
+                self.Data = pkt.Data
             elif pkt.PKT_ID == 4:   # PTUx packet
                 self.P = pkt.P
                 self.T = pkt.T
@@ -333,28 +325,26 @@ class Pkt:  # iMet data packet
             self.CRC_check = pkt.CRC_check
             self.CRC_ok = pkt.CRC_ok
 
-#################################################################################################### 
+####################################################################################################
 
 class Sounding: # iMet sounding instance
 
     def __init__(self, name = "iMet_", output_text_list = []):
-        
+
         self.name = name + time.strftime("%Y.%m.%d") + "_" + time.strftime("%H.%M.%S")  # Set output file path
         self.path = name + time.strftime("%Y.%m.%d") + "\\" + self.name + "\\"          # Set output file name
 
         if not os.path.exists(self.path): os.makedirs(self.path)
-        
+
         self.log_file = open(self.path + self.name + ".log", "w") # Open log file
         self.raw_file = open(self.path + self.name + ".bin", 'w')
         self.csv_file = open(self.path + self.name + ".csv", 'w')
-        
-        sys.stdout = tee([sys.stdout, self.log_file], output_text_list) # Redirect output to both console and log file
-        
+
         self.write_csv_init()
         self.row = 0
 
         ## Initialize member variables
-        
+
         self.pkt_array = []             # data packet array
         self.current = Pkt()            # cache for current data (unpacked)
 
@@ -374,7 +364,7 @@ class Sounding: # iMet sounding instance
         self.csv_file.close()
 
 #--------------------------------------------------------------------------------------------------
-            
+
     def calc_view_params(self, pkt):
         self.Distance, self.Azimuth, self.ElevationAngle = view_params(station_lat, station_lon, station_alt, pkt.Latitude, pkt.Longitude, pkt.Altitude)
 
@@ -388,7 +378,7 @@ class Sounding: # iMet sounding instance
         Row += repr(station_alt) + "\n"
         self.csv_file.write(Row)
 
-        col = ['']*44
+        col = ['']*49
 
         Row = ""
         col[0] = "#"
@@ -413,36 +403,37 @@ class Sounding: # iMet sounding instance
         # XDATA
         col[17] = "Length of XDATA packet"
         col[18] = "XDATA raw"
-        col[19] = "XDATA #"
-        #
-        col[20] = "1"
-        col[21] = "2"
-        col[22] = "3"
-        col[23] = "4"
-        col[24] = "CRC"
-        #
-        col[25] = "5"
-        col[26] = "6"
-        col[27] = "7"
-        col[28] = "8"
-        col[29] = "CRC"
-        #
-        col[30] = "9"
-        col[31] = "10"
-        col[32] = "11"
-        col[33] = "12"
-        col[34] = "CRC"
-        #
-        col[35] = "13"
-        col[36] = "14"
-        col[37] = "15"
-        col[38] = "CRC"
+        col[19] = "XDATA#"
+        col[20] = "12"
+        col[21] = "23"
+        col[22] = "34"
+        col[23] = "45"
+        col[24] = "123"
+        col[25] = "234"
+        col[26] = "345"
+        col[27] = "1234"
+        col[28] = "2345"
+        col[29] = "12345"
+        col[30] = "CRC"
+        col[31] = "CRC"
+        col[32] = "12"
+        col[33] = "23"
+        col[34] = "34"
+        col[35] = "45"
+        col[36] = "123"
+        col[37] = "234"
+        col[38] = "345"
+        col[39] = "1234"
+        col[40] = "2345"
+        col[41] = "12345"
+        col[42] = "CRC"
+        col[43] = "CRC"
         # counting
-        col[39] = "Total Packets"
-        col[40] = "PTU Packets"
-        col[41] = "GPS Packets"
-        col[42] = "XDATA Packets"
-        col[43] = "PTUx Packets"
+        col[44] = "Total Packets"
+        col[45] = "PTU Packets"
+        col[46] = "GPS Packets"
+        col[47] = "XDATA Packets"
+        col[48] = "PTUx Packets"
 
         Row = ''
         for c in col: Row += (c + ",")
@@ -453,7 +444,7 @@ class Sounding: # iMet sounding instance
 
     def write_csv(self):
 
-        col = ['']*44
+        col = ['']*49
 
         col[0] = repr(self.row)
         col[1] = repr(self.current.time)
@@ -478,43 +469,43 @@ class Sounding: # iMet sounding instance
         col[17] = repr(self.current.N)
         col[18] = self.current.XDATA.encode("hex")
         col[19] = repr(self.current.Data[0])
-        #
         col[20] = repr(self.current.Data[1])
         col[21] = repr(self.current.Data[2])
         col[22] = repr(self.current.Data[3])
         col[23] = repr(self.current.Data[4])
         col[24] = repr(self.current.Data[5])
-        #
         col[25] = repr(self.current.Data[6])
         col[26] = repr(self.current.Data[7])
         col[27] = repr(self.current.Data[8])
         col[28] = repr(self.current.Data[9])
         col[29] = repr(self.current.Data[10])
-        #
         col[30] = repr(self.current.Data[11])
         col[31] = repr(self.current.Data[12])
         col[32] = repr(self.current.Data[13])
         col[33] = repr(self.current.Data[14])
         col[34] = repr(self.current.Data[15])
-        #
         col[35] = repr(self.current.Data[16])
         col[36] = repr(self.current.Data[17])
         col[37] = repr(self.current.Data[18])
-        #
         col[38] = repr(self.current.Data[19])
+        col[39] = repr(self.current.Data[20])
+        col[40] = repr(self.current.Data[21])
+        col[41] = repr(self.current.Data[22])
+        col[42] = repr(self.current.Data[23])
+        col[43] = repr(self.current.Data[24])
         ## counting
-        col[39] = repr(self.n_pkt_CRC_ok[0]) + "//" + repr(self.n_pkt[0])
-        col[40] = repr(self.n_pkt_CRC_ok[1]) + "//" + repr(self.n_pkt[1])
-        col[41] = repr(self.n_pkt_CRC_ok[2]) + "//" + repr(self.n_pkt[2])
-        col[42] = repr(self.n_pkt_CRC_ok[3]) + "//" + repr(self.n_pkt[3])
-        col[43] = repr(self.n_pkt_CRC_ok[4]) + "//" + repr(self.n_pkt[4])
+        col[44] = repr(self.n_pkt_CRC_ok[0]) + "//" + repr(self.n_pkt[0])
+        col[45] = repr(self.n_pkt_CRC_ok[1]) + "//" + repr(self.n_pkt[1])
+        col[46] = repr(self.n_pkt_CRC_ok[2]) + "//" + repr(self.n_pkt[2])
+        col[47] = repr(self.n_pkt_CRC_ok[3]) + "//" + repr(self.n_pkt[3])
+        col[48] = repr(self.n_pkt_CRC_ok[4]) + "//" + repr(self.n_pkt[4])
 
         Row = ''
         for c in col: Row += (c + ",")
         Row += '\n'
         self.csv_file.write(Row)
         self.row += 1
-    
+
 #---------------------------------------------------------------------------------------------------
 
     def parse(self, char):
@@ -524,7 +515,7 @@ class Sounding: # iMet sounding instance
 
         if ord(char) == 1: # start new packet in buffer
             self.pkt_buffer_array.append(Pkt())
-            
+
         for pkt in self.pkt_buffer_array: # for every packet in buffer append char
             pkt.string += char
 
@@ -534,7 +525,7 @@ class Sounding: # iMet sounding instance
                 if 1 <= pkt.PKT_ID <=4:
                     pkt.target_length = pkt_target_length[pkt.PKT_ID]
                 else:
-                    self.pkt_buffer_array.remove(pkt) 
+                    self.pkt_buffer_array.remove(pkt)
                     self.n_false += 1
                     break
 
@@ -544,7 +535,7 @@ class Sounding: # iMet sounding instance
                 pkt.target_length = pkt.N+5
 
             # end of packet --> unpack
-            if len(pkt.string) >= pkt.target_length: 
+            if len(pkt.string) >= pkt.target_length:
                 pkt.unpack()
                 self.pkt_array.append(pkt)
                 self.current.extract(pkt)
@@ -553,15 +544,15 @@ class Sounding: # iMet sounding instance
                     self.calc_view_params(pkt)  # calculate view parameters
                     self.write_csv()            # write to CSV after receiving GPS packets
                     if self.current.CRC_ok == 1:
-                        accumulate_gps += ("%s,%s,%s\n" % (repr(self.current.Longitude), repr(self.current.Latitude), repr(self.current.Altitude)))
-                ### 
+                         accumulate_gps += ("%s,%s,%s\n" % (repr(self.current.Longitude), repr(self.current.Latitude), repr(self.current.Altitude)))
+                ###
                 self.n_pkt[0] += 1
                 self.n_pkt[pkt.PKT_ID] += 1
                 if pkt.CRC_ok == 1:
                     self.n_pkt_CRC_ok[0] += 1
                     self.n_pkt_CRC_ok[pkt.PKT_ID] += 1
 
-                #pkt.print_pkt()
+                pkt.print_pkt(self.log_file)
                 self.displayConsole()
                 sys.stdout.flush()
                 PKT_ID = pkt.PKT_ID
@@ -606,7 +597,7 @@ class Sounding: # iMet sounding instance
             return disp
 
     def displayConsole(self):
-        
+
         message = "################################################################################\n"
         ##
         message += "[Station]\t"
@@ -638,7 +629,7 @@ class Sounding: # iMet sounding instance
         message += repr(round(self.Distance,3)) + " km\t"
         message += repr(round(self.Azimuth,1)) + " deg\t"
         message += repr(round(self.ElevationAngle,1)) + " deg\n"
-       
+
         message += "\n"
         ##
         message += "[PTU]\t\t\t"
@@ -654,37 +645,45 @@ class Sounding: # iMet sounding instance
         message += "\n"
         ##
         message += "[XDATA]\t\t"
-        message += "N = " + repr(self.current.N) + "\n"
-        message += "# " + repr(self.current.Data[0]) + "\n"
+        message += "# " + repr(self.current.Data[0])
+        message += "\t\tN = " + repr(self.current.N) + "\n"
         #
+        message += "\t\t12\t23\t34\t45\t123\t234\t345\t1234\t2345\t12345\t\tCRC\n"
+        message += "\t\t-----\t-----\t-----\t-----\t-----\t-----\t-----\t-----\t-----\t-----\t\t-----\n"
+        message += "\t\t"
         message += repr(self.current.Data[1]) + "\t"
         message += repr(self.current.Data[2]) + "\t"
         message += repr(self.current.Data[3]) + "\t"
         message += repr(self.current.Data[4]) + "\t"
-        message += repr(self.current.Data[5]) + "\n"
-        #
+        message += repr(self.current.Data[5]) + "\t"
         message += repr(self.current.Data[6]) + "\t"
         message += repr(self.current.Data[7]) + "\t"
         message += repr(self.current.Data[8]) + "\t"
         message += repr(self.current.Data[9]) + "\t"
-        message += repr(self.current.Data[10]) + "\n"
+        message += repr(self.current.Data[10]) + "\t\t"
         #
         message += repr(self.current.Data[11]) + "\t"
-        message += repr(self.current.Data[12]) + "\t"
+        message += repr(self.current.Data[12]) + "\n"
+        #
+        message += "\t\t"
         message += repr(self.current.Data[13]) + "\t"
         message += repr(self.current.Data[14]) + "\t"
-        message += repr(self.current.Data[15]) + "\n"
-        #
+        message += repr(self.current.Data[15]) + "\t"
         message += repr(self.current.Data[16]) + "\t"
         message += repr(self.current.Data[17]) + "\t"
-        message += repr(self.current.Data[18]) + "\t\t"
+        message += repr(self.current.Data[18]) + "\t"
+        message += repr(self.current.Data[19]) + "\t"
+        message += repr(self.current.Data[20]) + "\t"
+        message += repr(self.current.Data[21]) + "\t"
+        message += repr(self.current.Data[22]) + "\t\t"
         #
-        message += repr(self.current.Data[19]) + "\n"    
+        message += repr(self.current.Data[23]) + "\t"
+        message += repr(self.current.Data[24]) + "\n"
 
         cls()
         print (message)
-            
-#################################################################################################### 
+
+####################################################################################################
 
 # Thread for fetching data
 class Data_fetch(QtCore.QThread):
@@ -706,6 +705,7 @@ class Data_fetch(QtCore.QThread):
             else:
                 try:
                     char = self.COM.read(1)
+                    sounding.raw_file.write(char)
                     if len(char) == 1:
                         display_no = sounding.parse(char)
                         if display_no > 0:
@@ -760,7 +760,7 @@ class MyWindowClass(QtGui.QMainWindow, form_class):
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self, parent)
         self.setupUi(self)
-        
+
         self.timeSyncThread.updated.connect(self.updateTime)
         self.comThread.updated.connect(self.updateData)
         self.comThread.COM_changed.connect(self.updateComOpened)
@@ -769,7 +769,7 @@ class MyWindowClass(QtGui.QMainWindow, form_class):
         self.OPEN_COM1.clicked.connect(self.openCom)
         self.openComSignal.connect(self.comThread.startCOM)
         self.closeComSignal.connect(self.comThread.stopCOM)
-        
+
     def updateTime(self):
         self.Time.setText(time.strftime("%y/%m/%d  %H:%M:%S", time.localtime()))
 
@@ -794,8 +794,19 @@ class MyWindowClass(QtGui.QMainWindow, form_class):
             self.AZ.display(data[10])
             self.EL.display(data[11])
         elif data[0] == 3: #XDATA
-            pass
-        elif data[0] == 4: #PTUx 
+            self.XDATA_NO.setText(data[1])
+            self.DATA_NUM.display(data[2])
+            self.DATA12.display(data[3])
+            self.DATA23.display(data[4])
+            self.DATA34.display(data[5])
+            self.DATA45.display(data[6])
+            self.DATA123.display(data[7])
+            self.DATA234.display(data[8])
+            self.DATA345.display(data[9])
+            self.DATA1234.display(data[10])
+            self.DATA2345.display(data[11])
+            self.DATA12345.display(data[12])
+        elif data[0] == 4: #PTUx
             self.PTU_NO.setText(data[1])
             self.TEMP.display(data[2])
             self.PRESSURE.display(data[3])
@@ -810,7 +821,7 @@ class MyWindowClass(QtGui.QMainWindow, form_class):
         if self.comThread.COM.is_open:
             self.COM1_OPENED.setText(self.comThread.COM.name + " opened")
             self.OPEN_COM1.setText("Close COM port")
-        else: 
+        else:
             self.COM1_OPENED.setText("Closed")
             self.OPEN_COM1.setText("Open COM port")
 
