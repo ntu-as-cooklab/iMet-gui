@@ -529,7 +529,7 @@ class Sounding: # iMet sounding instance
 
     def parse(self, char):
 
-        pkt_target_length = [0, 14, 18, 5, 20]
+        pkt_target_length = [2, 14, 18, 5, 20]
         global accumulate_gps, last_gps
 
         if ord(char) == 1: # start new packet in buffer
@@ -562,7 +562,7 @@ class Sounding: # iMet sounding instance
                 if pkt.PKT_ID == 2:
                     self.calc_view_params(pkt)  # calculate view parameters
                     self.write_csv()            # write to CSV after receiving GPS packets
-                    if self.current.CRC_ok == 1:
+                    if self.current.CRC_ok == 1 and not self.current.Longitude == 0:
                         last_gps = ("%s,%s,%s\n" % (repr(self.current.Longitude), repr(self.current.Latitude), repr(self.current.Altitude)))
                         accumulate_gps += last_gps
                 ###
