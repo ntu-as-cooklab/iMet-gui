@@ -18,6 +18,7 @@ station_lon = 121.538715
 station_alt = 10
 
 accumulate_gps = ''
+last_gps = ''
 
 ####################################################################################################
 
@@ -26,41 +27,59 @@ class HTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self.path == '/iMet.kml':
             kml = (
-               '<?xml version="1.0" encoding="UTF-8"?>\n'
-               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-               '    <Placemark>\n'
-               '        <name>iMet path</name>\n'
-               '        <Style>\n'
-               '            <LineStyle>\n'
-               '                <color>ff0000ff</color>\n'
-               '                <width>5</width>\n'
-               '            </LineStyle>\n'
-               '        </Style>\n'
-               '        <LineString id="iMetPath">\n'
-               '            <altitudeMode>absolute</altitudeMode>\n'
-               '            <tessellate>1</tessellate>\n'
-               '            <coordinates></coordinates>\n'
-               '        </LineString>\n'
-               '    </Placemark>\n'
-               '</kml>'
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+                '<Document>\n'
+                '   <Style id="yellowPoly">\n'
+                '       <LineStyle>\n'
+                '       <color>7f00ffff</color>\n'
+                '       <width>4</width>\n'
+                '   </LineStyle>\n'
+                '   <PolyStyle>\n'
+                '       <color>7f00ff00</color>\n'
+                '   </PolyStyle>\n'
+                '   </Style>\n'
+                '    <Placemark>\n'
+                '        <name>iMet path</name>\n'
+                '        <styleUrl>#yellowPoly</styleUrl>\n'
+                '        <LineString id="iMetPath">\n'
+                '            <altitudeMode>absolute</altitudeMode>\n'
+                '            <extrude>1</extrude>\n'
+                '            <tessellate>1</tessellate>\n'
+                '            <coordinates></coordinates>\n'
+                '        </LineString>\n'
+                '    </Placemark>\n'
+                '    <Placemark>\n'
+                '        <name>iMet</name>\n'
+                '        <Point id="iMet">\n'
+                '            <coordinates></coordinates>\n'
+                '        </Point>\n'
+                '    </Placemark>\n'
+                '</Document>\n'
+                '</kml>'
                )
         elif self.path == '/iMet-update.kml':
-            global accumulate_gps
+            global accumulate_gps, last_gps
             kml = (
-               '<?xml version="1.0" encoding="UTF-8"?>\n'
-               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-               '    <NetworkLinkControl>\n'
-               '        <Update>\n'
-               '            <targetHref>http://localhost:8000/iMet.kml</targetHref>\n'
-               '            <Change>\n'
-               '                <LineString targetId="iMetPath">\n'
-               '                    <coordinates>\n%s</coordinates>\n'
-               '                </LineString>\n'
-               '            </Change>\n'
-               '        </Update>\n'
-               '    </NetworkLinkControl>\n'
-               '</kml>'
-               ) %(accumulate_gps)
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+                '    <NetworkLinkControl>\n'
+                '        <Update>\n'
+                '            <targetHref>http://localhost:8000/iMet.kml</targetHref>\n'
+                '            <Change>\n'
+                '                <LineString targetId="iMetPath">\n'
+                '                    <coordinates>\n%s</coordinates>\n'
+                '                </LineString>\n'
+                '            </Change>\n'
+                '            <Change>\n'
+                '                <Point targetId="iMet">\n'
+                '                    <coordinates>%s</coordinates>\n'
+                '                </Point>\n'
+                '            </Change>\n'
+                '        </Update>\n'
+                '    </NetworkLinkControl>\n'
+                '</kml>'
+               ) %(accumulate_gps, last_gps)
 
         self.send_response(200)
         self.send_header("Content-type", "application/vnd.google-earth.kml+xml")
@@ -404,28 +423,28 @@ class Sounding: # iMet sounding instance
         col[17] = "Length of XDATA packet"
         col[18] = "XDATA raw"
         col[19] = "XDATA#"
-        col[20] = "12"
-        col[21] = "23"
-        col[22] = "34"
-        col[23] = "45"
-        col[24] = "123"
-        col[25] = "234"
-        col[26] = "345"
-        col[27] = "1234"
-        col[28] = "2345"
-        col[29] = "12345"
+        col[20] = "12#"
+        col[21] = "23#"
+        col[22] = "34#"
+        col[23] = "45#"
+        col[24] = "123#"
+        col[25] = "234#"
+        col[26] = "345#"
+        col[27] = "1234#"
+        col[28] = "2345#"
+        col[29] = "12345#"
         col[30] = "CRC"
         col[31] = "CRC"
-        col[32] = "12"
-        col[33] = "23"
-        col[34] = "34"
-        col[35] = "45"
-        col[36] = "123"
-        col[37] = "234"
-        col[38] = "345"
-        col[39] = "1234"
-        col[40] = "2345"
-        col[41] = "12345"
+        col[32] = "12#"
+        col[33] = "23#"
+        col[34] = "34#"
+        col[35] = "45#"
+        col[36] = "123#"
+        col[37] = "234#"
+        col[38] = "345#"
+        col[39] = "1234#"
+        col[40] = "2345#"
+        col[41] = "12345#"
         col[42] = "CRC"
         col[43] = "CRC"
         # counting
@@ -511,7 +530,7 @@ class Sounding: # iMet sounding instance
     def parse(self, char):
 
         pkt_target_length = [0, 14, 18, 5, 20]
-        global accumulate_gps
+        global accumulate_gps, last_gps
 
         if ord(char) == 1: # start new packet in buffer
             self.pkt_buffer_array.append(Pkt())
@@ -544,7 +563,8 @@ class Sounding: # iMet sounding instance
                     self.calc_view_params(pkt)  # calculate view parameters
                     self.write_csv()            # write to CSV after receiving GPS packets
                     if self.current.CRC_ok == 1:
-                         accumulate_gps += ("%s,%s,%s\n" % (repr(self.current.Longitude), repr(self.current.Latitude), repr(self.current.Altitude)))
+                        last_gps = ("%s,%s,%s\n" % (repr(self.current.Longitude), repr(self.current.Latitude), repr(self.current.Altitude)))
+                        accumulate_gps += last_gps
                 ###
                 self.n_pkt[0] += 1
                 self.n_pkt[pkt.PKT_ID] += 1
@@ -611,7 +631,7 @@ class Sounding: # iMet sounding instance
         message += repr(self.current.CRC_ok) + "\n"
         message += "\t\tReceived time: " + repr(self.current.time) + "\n"
         message += "\t\tPackets in buffer: "  +  repr(len(self.pkt_buffer_array)) + "\t"
-        message += "False packet starts: "  +  repr(self.n_false) + "\n"
+        message += "\tFalse packet starts: "  +  repr(self.n_false) + "\n"
         message += "# of packets:\tTotal\t\tGPS\t\tXDATA\t\tPTUx\n\t\t"
         message += repr(self.n_pkt_CRC_ok[0]) + "/" + repr(self.n_pkt[0]) + "\t\t"
         message += repr(self.n_pkt_CRC_ok[2]) + "/" + repr(self.n_pkt[2]) + "\t\t"
@@ -712,7 +732,7 @@ class Data_fetch(QtCore.QThread):
                             self.updated.emit(sounding.display(display_no))
                 except Exception as e:
                     print (e)
-                    raise
+                    #raise
                     self.restartCOM()
 
     def startCOM(self, port):
